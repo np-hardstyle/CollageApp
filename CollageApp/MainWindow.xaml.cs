@@ -26,33 +26,62 @@ namespace CollageApp
     public partial class MainWindow : Window
     {
         private int _gridSize = 5; // Default N value
-        private ObservableCollection<Image> _images = new ObservableCollection<Image>();
+        private ObservableCollection<CanvasCollageImage> _ImageStack = new ObservableCollection<CanvasCollageImage>();
 
         public MainWindow()
         {
             InitializeComponent();
+
+            // setup image stack for user inputted images (empty by default)
+            this._ImageStack.CollectionChanged += _image_stack_CollectionChanged;
+            
+            // setup grid toggle button
             GridCheckBox.IsChecked = true;
-            //this._images.CollectionChanged += _images_CollectionChanged;
+            GridCheckBox.Checked += CheckBox_Checked;
+            GridCheckBox.Unchecked += CheckBox_Unchecked;
+
+            // setup file open button
+            FileOpenButton.IsEnabled = true;
+            FileOpenButton.Click += MenuItem_Click;
+
+            // setup canvas
+            CollageCanvas.AllowDrop = true;
+            CollageCanvas.SizeChanged += CollageCanvas_SizeChanged;
             DrawGrid();
         }
 
-        //private void _images_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        //{
-        //    // snap images
-        //    for (int i = 0; i < this._images.Count; i++)
-        //    {
-        //        // calculate image position with grid definition
-        //        this.AddChild()
-        //    }
-        //}
-
-        private void Get_Next_Slot()
+        private void _image_stack_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            int quadrant_number = this._images.Count - 1;
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                // Add new items to the canvas
+                foreach (CanvasCollageImage newImage in e.NewItems)
+                {
+                    if (!CollageCanvas.Children.Contains(newImage))
+                    {
+                        CollageCanvas.Children.Add(newImage);
+                    }
+                }
+            }
+            else if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                // Remove items from the canvas
+                foreach (CanvasCollageImage oldImage in e.OldItems)
+                {
+                    if (CollageCanvas.Children.Contains(oldImage))
+                    {
+                        CollageCanvas.Children.Remove(oldImage);
+                    }
+                }
+            }
+        }
+
+        private (double, double) Get_Next_Slot()
+        {
+            int quadrant_number = this._ImageStack.Count - 1;
             double cellWidth = CollageCanvas.ActualWidth / this._gridSize;
             double cellHeight = CollageCanvas.ActualHeight / this._gridSize;
-            double x = cellWidth * quadrant_number, y = cellHeight * quadrant_number;
-
+            return (cellWidth * quadrant_number, cellHeight * quadrant_number);
 
         }
 
@@ -121,14 +150,10 @@ namespace CollageApp
 
             if (_dialog.ShowDialog() == true){
 
-                Image img = new Image
-                {
-                    Source = new BitmapImage(new Uri(_dialog.FileName)),
-                    Width = CollageCanvas.ActualWidth / this._gridSize,
-                    Height = CollageCanvas.ActualHeight / this._gridSize
-                };
-
-                this._images.Add(img);
+                CanvasCollageImage img = new CanvasCollageImage(_dialog.FileName);
+                img.relocate_image(0, 0);
+                img.resize_image(CollageCanvas.ActualWidth / this._gridSize, CollageCanvas.ActualHeight / this._gridSize);
+                this._ImageStack.Add(img);
             }
         }
     }
