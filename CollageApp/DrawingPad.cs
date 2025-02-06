@@ -1,6 +1,7 @@
 ﻿using System.CodeDom;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -70,7 +71,8 @@ namespace CollageApp
             }
             else if (e.Action == NotifyCollectionChangedAction.Reset)
             {
-                // TODO: implement this
+                foreach (Line newLine in Children.OfType<Line>().ToList())
+                    Children.Remove(newLine);
             }
         }
 

@@ -11,6 +11,7 @@ namespace CollageApp
 {
     internal class PadImage : Image
     {
+        //private
         static private double _default_pixel = 100;
         private bool _is_selected = false;
         private bool _is_dragging = false;
