@@ -59,16 +59,6 @@ namespace CollageApp
                     }
                 }
             }
-            else if (e.Action == NotifyCollectionChangedAction.Remove)
-            {
-                foreach (Line oldLine in e.OldItems)
-                {
-                    if (Children.Contains(oldLine))
-                    {
-                        Children.Remove(oldLine);
-                    }
-                }
-            }
             else if (e.Action == NotifyCollectionChangedAction.Reset)
             {
                 foreach (Line newLine in Children.OfType<Line>().ToList())
