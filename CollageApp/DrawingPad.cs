@@ -52,17 +52,20 @@ namespace CollageApp
             {
                 foreach (Line newLine in e.NewItems)
                 {
-                    if (!Children.Contains(newLine))
-                    {
+                    
                         // Add the grid lines first to ensure they are underneath
                         Children.Insert(0, newLine);
-                    }
                 }
             }
             else if (e.Action == NotifyCollectionChangedAction.Reset)
             {
-                foreach (Line newLine in Children.OfType<Line>().ToList())
-                    Children.Remove(newLine);
+                for (uint i = 0; i < _gridSize * 2; i++)
+                {
+                    Children.Remove(Children[0]);
+                }
+
+                //foreach (Line newLine in Children.OfType<Line>().ToList())
+                //    Children.Remove(newLine);
             }
         }
 
