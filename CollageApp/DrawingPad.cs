@@ -27,6 +27,7 @@ namespace CollageApp
             _ImageStack.CollectionChanged += ImageStack_CollectionChanged;
             _GridLines.CollectionChanged += _GridLines_CollectionChanged;
             MouseLeftButtonDown += DrawingPad_MouseLeftButtonDown;
+            MouseLeftButtonUp += DrawingPad_MouseLeftButtonUp;
             Focusable = true;
             
             // obj for rectangle
@@ -38,9 +39,16 @@ namespace CollageApp
                 Width = 0,
                 Height = 0,
             };
-            Children.Add(_Highlight);
             DrawGrid();
 
+        }
+
+        private void DrawingPad_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (Children[Children.Count - 1] == _Highlight)
+            {
+                Children.Remove(_Highlight);
+            }
         }
 
         private void DrawingPad_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -50,17 +58,12 @@ namespace CollageApp
             {
                 if (Children[Children.Count - 1] == _Highlight)
                 {
-                    Children.Remove(_Highlight);
+                    Children.RemoveAt(Children.Count - 1);
                 }
                 PadImage selected_image = (PadImage)original_source;
                 this._Highlight.Width = selected_image.Width;
                 this._Highlight.Height = selected_image.Height;
                 Children.Add(_Highlight);
-            }
-            else
-            {
-                this.Children.Remove(_Highlight);
-
             }
         }
 
