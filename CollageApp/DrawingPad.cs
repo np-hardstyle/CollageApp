@@ -85,6 +85,8 @@ namespace CollageApp
                 {
                     if (!Children.Contains(newImage))
                     {
+                        SetTop(newImage, 0);
+                        SetLeft(newImage, 0);
                         Children.Add(newImage);
                     }
                 }

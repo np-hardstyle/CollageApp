@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+
+//TOOO : https://learn.microsoft.com/en-us/dotnet/desktop/wpf/graphics-multimedia/painting-with-images-drawings-and-visuals?view=netframeworkdesktop-4.8
+
 
 namespace CollageApp
 {
@@ -13,10 +19,11 @@ namespace CollageApp
     {
         //private
         static private double _default_pixel = 100;
-        private bool _is_selected = false;
+        private bool _is_selected = true;
         private bool _is_dragging = false;
         private Point initialPointerPosition;
         private Point initialImagePosition;
+        private Rectangle _borderRectangle;
 
         //public
         public double _x;
@@ -27,12 +34,17 @@ namespace CollageApp
         public uint _affinity; // stack location (z-index in canvas graph)
 
         //constructor
-        public PadImage(string filepath) : base()
+        public PadImage(string filepath, double height = -1.0, double width = -1.0, double x = -0.1, double y = -0.1) : base()
         {
             this.Source = new BitmapImage(new Uri(filepath));
-            this.Width = _default_pixel;
-            this.Height = _default_pixel;
+            this.Width = width > 0 ? width : _default_pixel;
+            this.Height = height > 0 ? height : _default_pixel;
+            this._x = x > 0 ? x : 0;
+            this._y = y > 0 ? y : 0;
             this.MouseLeftButtonDown += image_poiner_dropped;
+            StretchDirection = StretchDirection.Both;
+            Stretch = Stretch.Fill;
+
         }
 
         // public members
@@ -52,7 +64,15 @@ namespace CollageApp
         // press mouse event == select image on the canvas
         private void image_pointer_pressed(object sender, RoutedEventArgs e)
         {
+            if (!_is_selected)
+            {
+                SelectImage();
+            }
+        }
 
+        private void SelectImage()
+        {
+            this._is_selected = true;
         }
 
         private void image_poiner_dropped(object sender, RoutedEventArgs e)
