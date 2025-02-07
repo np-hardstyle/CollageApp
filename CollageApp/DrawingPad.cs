@@ -1,7 +1,9 @@
 ﻿using System.CodeDom;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -16,15 +18,50 @@ namespace CollageApp
         private static Brush _line_brush_color = Brushes.Black;
         private ObservableCollection<PadImage> _ImageStack = new ObservableCollection<PadImage>();
         private ObservableCollection<Line> _GridLines = new ObservableCollection<Line>();
+        private Rectangle _Highlight = new Rectangle();
 
         public DrawingPad() : base()
         {
             AllowDrop = true;
-            SizeChanged += DrawingPad_SizeChanged;
+            SizeChanged += _DrawingPad_SizeChanged;
             _ImageStack.CollectionChanged += ImageStack_CollectionChanged;
             _GridLines.CollectionChanged += _GridLines_CollectionChanged;
+            MouseLeftButtonDown += DrawingPad_MouseLeftButtonDown;
+            Focusable = true;
+            
+            // obj for rectangle
+            _Highlight = new Rectangle
+            {
+                Stroke = Brushes.Red,  // Red border
+                StrokeThickness = 3,   // Border thickness
+                Fill = Brushes.Transparent, // No fill for the border
+                Width = 0,
+                Height = 0,
+            };
+            Children.Add(_Highlight);
             DrawGrid();
 
+        }
+
+        private void DrawingPad_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var original_source = e.OriginalSource; //PadImage object
+            if (original_source is PadImage)
+            {
+                if (Children[Children.Count - 1] == _Highlight)
+                {
+                    Children.Remove(_Highlight);
+                }
+                PadImage selected_image = (PadImage)original_source;
+                this._Highlight.Width = selected_image.Width;
+                this._Highlight.Height = selected_image.Height;
+                Children.Add(_Highlight);
+            }
+            else
+            {
+                this.Children.Remove(_Highlight);
+
+            }
         }
 
         public void ToggleGrid()
@@ -69,7 +106,7 @@ namespace CollageApp
             }
         }
 
-        private void DrawingPad_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void _DrawingPad_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             // redraw grid lines since every grid size will change from window resizing.
             _GridLines.Clear();
@@ -85,8 +122,10 @@ namespace CollageApp
                 {
                     if (!Children.Contains(newImage))
                     {
-                        SetTop(newImage, 0);
-                        SetLeft(newImage, 0);
+                        newImage.Width = ActualWidth / _gridSize;
+                        newImage.Height = ActualHeight / _gridSize;
+                        SetTop(newImage, newImage.Y);
+                        SetLeft(newImage, newImage.X);
                         Children.Add(newImage);
                     }
                 }

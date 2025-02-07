@@ -23,15 +23,15 @@ namespace CollageApp
         private bool _is_dragging = false;
         private Point initialPointerPosition;
         private Point initialImagePosition;
-        private Rectangle _borderRectangle;
 
         //public
-        public double _x;
-        public double _y; // top left corner location
+        public double X;
+        public double Y; // top left corner location
         public double _width;
         public double _height; // adjustable width and height
         public double _border_color; // highlight color
         public uint _affinity; // stack location (z-index in canvas graph)
+        public Rectangle _borderRectangle;
 
         //constructor
         public PadImage(string filepath, double height = -1.0, double width = -1.0, double x = -0.1, double y = -0.1) : base()
@@ -39,45 +39,48 @@ namespace CollageApp
             this.Source = new BitmapImage(new Uri(filepath));
             this.Width = width > 0 ? width : _default_pixel;
             this.Height = height > 0 ? height : _default_pixel;
-            this._x = x > 0 ? x : 0;
-            this._y = y > 0 ? y : 0;
+            this.X = x > 0 ? x : 0;
+            this.Y = y > 0 ? y : 0;
             this.MouseLeftButtonDown += image_poiner_dropped;
             StretchDirection = StretchDirection.Both;
             Stretch = Stretch.Fill;
-
+            _borderRectangle = new Rectangle
+            {
+                Stroke = Brushes.Red,  // Red border
+                StrokeThickness = 3,   // Border thickness
+                Fill = Brushes.Transparent, // No fill for the border
+                Width = 0,
+                Height = 0,
+            };
         }
 
         // public members
         public void resize_image(double in_width, double in_height)
         {
-            this._width = in_width;
+            Width = in_width;
             this._height = in_height;
         }
 
-        public void relocate_image(double in_x, double in_y)
+        public void relocate_image(double inX, double inY)
         {
-            this._x = in_x;
-            this._y = in_y;
+            this.X = inX;
+            this.Y = inY;
         }
 
         // reference -> https://stackoverflow.com/questions/54423232/how-to-drag-and-drop-images-inside-canvas-in-wpf-using-c-sharp
         // press mouse event == select image on the canvas
         private void image_pointer_pressed(object sender, RoutedEventArgs e)
         {
-            if (!_is_selected)
-            {
-                SelectImage();
-            }
-        }
-
-        private void SelectImage()
-        {
             this._is_selected = true;
+            this._borderRectangle.Width = this._width;
+            this._borderRectangle.Height = this._height;
         }
 
         private void image_poiner_dropped(object sender, RoutedEventArgs e)
         {
-
+            this._is_selected &= this._is_selected;
+            this._borderRectangle.Width = 0;
+            this._borderRectangle.Height = 0;
         }
 
         // affinity swap between two images in canvas
