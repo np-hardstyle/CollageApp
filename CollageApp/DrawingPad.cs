@@ -24,6 +24,7 @@ namespace CollageApp
         private ObservableCollection<PadImage> _ImageStack =    new ObservableCollection<PadImage>();
         private ObservableCollection<Line> _GridLines =         new ObservableCollection<Line>();
         private Rectangle _Highlight =                          new Rectangle();
+        private List<Rectangle> _EditRectangle =                new List<Rectangle>();
         private bool selected =                                 false;
         private Point selected_object_position;
 
@@ -36,8 +37,9 @@ namespace CollageApp
             MouseLeftButtonDown +=              DrawingPad_MouseLeftButtonDown;
             MouseLeftButtonUp +=                DrawingPad_MouseLeftButtonUp;
             PreviewMouseMove +=                 DrawingPad_PreviewMouseMove;
+            MouseRightButtonDown +=             DrawingPad_MouseRightButtonDown;
             Focusable =                         true;
-            
+
             _Highlight = new Rectangle
             {
                 Stroke = Brushes.Red,  // Red border
@@ -47,7 +49,30 @@ namespace CollageApp
                 Height = 0,
             };
 
+            Rectangle outline, topcenter, topright, right, bottomright, bottomcenter, bottomleft, left, topleft;
+            outline = topcenter = topright = right = bottomright = bottomcenter = bottomleft = left = topleft = new Rectangle
+            {
+                Stroke = Brushes.Blue,  // Red border
+                StrokeThickness = 3,   // Border thickness
+                Fill = Brushes.Blue,
+                Width = 0,
+                Height = 0,
+            };
+
             DrawGrid();
+
+        }
+
+        private void DrawingPad_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var original_source = e.OriginalSource;
+
+            // check if it's an image
+            if (original_source is PadImage)
+            {
+                PadImage selected_image = (PadImage)original_source;
+
+            }
 
         }
 
@@ -55,13 +80,20 @@ namespace CollageApp
         {
             if (selected)
             {
+                int stack_size = Children.Count;
+                int highlight_position = stack_size - 1;
+                int image_location = stack_size - 2;
+
                 var newPos = e.GetPosition(this) - selected_object_position;
-                PadImage curr_image = (PadImage)Children[Children.Count - 2];
+                PadImage curr_image = (PadImage)Children[image_location];
                 curr_image.X = newPos.X;
                 curr_image.Y = newPos.Y;
 
-                SetTop(Children[Children.Count - 2], newPos.Y);
-                SetLeft(Children[Children.Count - 2], newPos.X);
+                SetTop(Children[image_location], newPos.Y);
+                SetLeft(Children[image_location], newPos.X);
+
+                SetTop(Children[highlight_position], newPos.Y);
+                SetLeft(Children[highlight_position], newPos.X);
             }
             e.Handled = true;
         }
