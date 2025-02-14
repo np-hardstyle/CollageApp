@@ -31,16 +31,22 @@ namespace CollageApp
         public double _height; // adjustable width and height
         public double _border_color; // highlight color
         public uint _affinity; // stack location (z-index in canvas graph)
+        public (double, double) stretch_factor;
+        public uint quadrant;
         public Rectangle _borderRectangle;
 
         //constructor
-        public PadImage(string filepath, double height = -1.0, double width = -1.0, double x = -0.1, double y = -0.1) : base()
+        public PadImage(string filepath, double height = -1.0, double width = -1.0, double x = -0.1, double y = -0.1, (double, double) stretch_factor = default) : base()
         {
             this.Source = new BitmapImage(new Uri(filepath));
             this.Width = width > 0 ? width : _default_pixel;
             this.Height = height > 0 ? height : _default_pixel;
             this.X = x > 0 ? x : 0;
             this.Y = y > 0 ? y : 0;
+            this.stretch_factor.Item1 = stretch_factor.Item1 > 0 ? stretch_factor.Item1 : 1;
+            this.stretch_factor.Item2 = stretch_factor.Item2 > 0 ? stretch_factor.Item2 : 1;
+            this.quadrant = 1;
+
             this.MouseLeftButtonDown += image_poiner_dropped;
             StretchDirection = StretchDirection.Both;
             Stretch = Stretch.Fill;
@@ -52,13 +58,6 @@ namespace CollageApp
                 Width = 0,
                 Height = 0,
             };
-        }
-
-        // public members
-        public void resize_image(double in_width, double in_height)
-        {
-            Width = in_width;
-            this._height = in_height;
         }
 
         public void relocate_image(double inX, double inY)
