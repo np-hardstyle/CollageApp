@@ -27,6 +27,7 @@ namespace CollageApp
         //public
         public double X;
         public double Y; // top left corner location
+        public string filepath;
         public double _width;
         public double _height; // adjustable width and height
         public double _border_color; // highlight color
@@ -39,6 +40,7 @@ namespace CollageApp
         public PadImage(string filepath, double height = -1.0, double width = -1.0, double x = -0.1, double y = -0.1, (double, double) stretch_factor = default) : base()
         {
             this.Source = new BitmapImage(new Uri(filepath));
+            this.filepath = filepath;
             this.Width = width > 0 ? width : _default_pixel;
             this.Height = height > 0 ? height : _default_pixel;
             this.X = x > 0 ? x : 0;
