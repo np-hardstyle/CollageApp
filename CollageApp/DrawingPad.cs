@@ -52,8 +52,21 @@ namespace CollageApp
 
             foreach (var image in _ImageStack)
             {
-                image.Width = ActualWidth / gridSize * image.stretch_factor.Item1;
-                image.Height = ActualHeight / gridSize * image.stretch_factor.Item2;
+                double relativeX = GetLeft(image) / e.PreviousSize.Width;
+                double relativeY = GetTop(image) / e.PreviousSize.Height;
+                double relativeWidth = image.Width / e.PreviousSize.Width;
+                double relativeHeight = image.Height / e.PreviousSize.Height;
+
+                image.Width = ActualWidth * relativeWidth;
+                image.Height = ActualHeight * relativeHeight;
+                SetLeft(image, ActualWidth * relativeX);
+                SetTop(image, ActualHeight * relativeY);
+            }
+
+            // check if image is selected and in editing mode
+            if (editing && selectedImage != null)
+            {
+                _editingFrame.AttachToImage(selectedImage);
             }
         }
 
@@ -130,7 +143,6 @@ namespace CollageApp
             // clicking on resizing points
             if (e.OriginalSource is Rectangle)
             {
-                e.GetPosition(this);
                 // check if it's just the resizing rectangle or the editing points
                 int editing_point = _editingFrame.GetResizingHandle(e.GetPosition(this));
                 if (editing_point == -1)
@@ -318,15 +330,6 @@ namespace CollageApp
                     Height = _size_rresizeHandles
                 };
                 Children.Add(_resizeHandles[i]);
-            }
-        }
-
-        public void _debug()
-        {
-            // print resizehanlde locations
-            foreach (var i in Children)
-            {
-                Console.WriteLine(i.ToString());
             }
         }
 
