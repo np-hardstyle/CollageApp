@@ -15,7 +15,7 @@ namespace CollageApp
     {
         #pragma warning disable IDE0044
         public static uint gridSizeY = 3; // default size is 3
-        public static uint gridSizeX = 5;
+        public static uint gridSizeX = 3;
         public bool GridEnabled = true;
         private static Brush _lineBrushColor = Brushes.Black;
         private ObservableCollection<PadImage> _imageStack = new ObservableCollection<PadImage>();
