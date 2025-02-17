@@ -165,7 +165,9 @@ namespace CollageApp
                 int editing_point = _editingFrame.GetResizingHandle(e.GetPosition(this));
                 _isDragging = (editing_point == -1);
                 _stretchMode = _isDragging ? -1 : editing_point;
-                _selectedObjectPosition = e.GetPosition(this);
+
+                // if it's dragging, don't overwrite the image's location
+                _selectedObjectPosition = _isDragging ? e.GetPosition(_selectedImage) : e.GetPosition(this);
             }
 
             // image is not selected yet
@@ -315,7 +317,7 @@ namespace CollageApp
         {
             _outline = new Rectangle
             {
-                Stroke = Brushes.Blue,
+                Stroke = Brushes.Red,
                 StrokeThickness = 3,
                 Fill = Brushes.Transparent
             };
