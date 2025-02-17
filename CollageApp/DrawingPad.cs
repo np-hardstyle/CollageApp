@@ -157,7 +157,7 @@ namespace CollageApp
 
         private void DrawingPad_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            // clicking on resizing points
+            // image selected, in editing mode
             if (e.OriginalSource is Rectangle)
             {
                 // check if it's just the resizing rectangle or the editing points
@@ -174,7 +174,7 @@ namespace CollageApp
                 }
             }
 
-            // no frame, image
+            // image is not selected yet
             else if (e.OriginalSource is PadImage selectedImage)
             {
 
@@ -194,7 +194,7 @@ namespace CollageApp
                 return;
             }
 
-            // clicking anywhere else
+            // exiting edit mode by clicking anywhere but image or editing frame
             else
             {
                 this.editing = false;
@@ -408,10 +408,10 @@ namespace CollageApp
                 // Check if the point is within the bounds of the handle
                 if (position.X >= left && position.X <= right && position.Y >= top && position.Y <= bottom)
                 {
-                    return i; // Return the index of the handle
+                    return i;
                 }
             }
-            return -1; // Return -1 if no handle is found
+            return -1;
         }
 
     }
