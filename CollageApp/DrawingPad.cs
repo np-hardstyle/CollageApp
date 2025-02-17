@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Runtime.InteropServices;
-using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Media3D;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows;
+using System;
 
 namespace CollageApp
 {
@@ -13,22 +13,22 @@ namespace CollageApp
     {
         public static uint gridSize = 3; // default size is 3
         public bool GridEnabled = true;
-        private static Brush _line_brush_color = Brushes.Black;
-        private ObservableCollection<PadImage> _ImageStack = new ObservableCollection<PadImage>();
-        private ObservableCollection<Line> _GridLines = new ObservableCollection<Line>();
+        private static Brush _lineBrushColor = Brushes.Black;
+        private ObservableCollection<PadImage> _imageStack = new ObservableCollection<PadImage>();
+        private ObservableCollection<Line> _gridLines = new ObservableCollection<Line>();
         private EditingFrame _editingFrame;
-        private bool editing = false;
-        private bool isDragging = false;
-        private int StretchMode = -1;
-        private Point selected_object_position;
-        private PadImage selectedImage;
+        private bool _editing = false;
+        private bool _isDragging = false;
+        private int _stretchMode = -1;
+        private Point _selectedObjectPosition;
+        private PadImage _selectedImage;
 
         public DrawingPad() : base()
         {
             AllowDrop = true;
             SizeChanged += _DrawingPad_SizeChanged;
-            _ImageStack.CollectionChanged += ImageStack_CollectionChanged;
-            _GridLines.CollectionChanged += _GridLines_CollectionChanged;
+            _imageStack.CollectionChanged += ImageStack_CollectionChanged;
+            _gridLines.CollectionChanged += _GridLines_CollectionChanged;
             MouseLeftButtonDown += DrawingPad_MouseLeftButtonDown;
             MouseLeftButtonUp += DrawingPad_MouseLeftButtonUp;
             PreviewMouseMove += DrawingPad_PreviewMouseMove;
@@ -42,15 +42,15 @@ namespace CollageApp
 
         public void AddImage(string filepath)
         {
-            _ImageStack.Add(new PadImage(filepath));
+            _imageStack.Add(new PadImage(filepath));
         }
 
         private void _DrawingPad_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            _GridLines.Clear();
+            _gridLines.Clear();
             DrawGrid();
 
-            foreach (var image in _ImageStack)
+            foreach (var image in _imageStack)
             {
                 double relativeX = GetLeft(image) / e.PreviousSize.Width;
                 double relativeY = GetTop(image) / e.PreviousSize.Height;
@@ -64,9 +64,9 @@ namespace CollageApp
             }
 
             // check if image is selected and in editing mode
-            if (editing && selectedImage != null)
+            if (_editing && _selectedImage != null)
             {
-                _editingFrame.AttachToImage(selectedImage);
+                _editingFrame.AttachToImage(_selectedImage);
             }
         }
 
@@ -122,11 +122,11 @@ namespace CollageApp
             // check if escape key is pressed (esc)
             if (e.Key == System.Windows.Input.Key.Escape)
             {
-                this.editing = false;
+                this._editing = false;
                 e.Handled = true;
                 Children.Remove(_editingFrame);
-                this.selectedImage = null;
-                this.isDragging = false;
+                this._selectedImage = null;
+                this._isDragging = false;
 
                 return;
             }
@@ -134,8 +134,8 @@ namespace CollageApp
 
         private void DrawingPad_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            isDragging = false;
-            if (editing && StretchMode == -1)
+            _isDragging = false;
+            if (_editing && _stretchMode == -1)
             {
                 // get cell dimentions and floor to get quadrant number then multiply by cell dimensions
                 var cursorPos = e.GetPosition(this);
@@ -145,12 +145,12 @@ namespace CollageApp
                 double snappedLeft = Math.Floor(cursorPos.X / gridSizePixelsX) * gridSizePixelsX;
                 double snappedTop = Math.Floor(cursorPos.Y / gridSizePixelsY) * gridSizePixelsY;
 
-                SetLeft(selectedImage, snappedLeft);
-                SetTop(selectedImage, snappedTop);
+                SetLeft(_selectedImage, snappedLeft);
+                SetTop(_selectedImage, snappedTop);
 
                 _editingFrame.MoveTo(new Vector(snappedLeft, snappedTop));
             }
-            StretchMode = -1;
+            _stretchMode = -1;
             e.Handled = true;
         }
 
@@ -163,13 +163,13 @@ namespace CollageApp
                 int editing_point = _editingFrame.GetResizingHandle(e.GetPosition(this));
                 if (editing_point == -1)
                 {
-                    isDragging = true;
+                    _isDragging = true;
                 }
                 else
                 {
-                    isDragging = false;
-                    StretchMode = editing_point;
-                    selected_object_position = e.GetPosition(this);
+                    _isDragging = false;
+                    _stretchMode = editing_point;
+                    _selectedObjectPosition = e.GetPosition(this);
                 }
             }
 
@@ -178,29 +178,29 @@ namespace CollageApp
             {
 
                 // check if already editing
-                if (editing)
+                if (_editing)
                 {
                     Children.Remove(_editingFrame);
                     _editingFrame.AttachToImage(selectedImage);
                 }
                 BringToFront(selectedImage);
                 _editingFrame.AttachToImage(selectedImage);
-                this.selectedImage = selectedImage;
+                this._selectedImage = selectedImage;
                 Children.Add(_editingFrame);
-                selected_object_position = e.GetPosition(selectedImage);
-                editing = true;
-                isDragging = true;
+                _selectedObjectPosition = e.GetPosition(selectedImage);
+                _editing = true;
+                _isDragging = true;
                 return;
             }
 
             // exiting edit mode by clicking anywhere but image or editing frame
             else
             {
-                this.editing = false;
+                this._editing = false;
                 e.Handled = true;
                 Children.Remove(_editingFrame);
-                this.selectedImage = null;
-                this.isDragging = false;
+                this._selectedImage = null;
+                this._isDragging = false;
             }
             e.Handled = true;
         }
@@ -208,24 +208,24 @@ namespace CollageApp
         private void DrawingPad_PreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
 
-            if (editing && isDragging)
+            if (_editing && _isDragging)
             {
                 // change editing frame location
                 Console.WriteLine("here");
-                var newPos = e.GetPosition(this) - selected_object_position;
+                var newPos = e.GetPosition(this) - _selectedObjectPosition;
                 _editingFrame.MoveTo(newPos);
 
                 // change image location
-                SetTop(selectedImage, newPos.Y);
-                SetLeft(selectedImage, newPos.X);
+                SetTop(_selectedImage, newPos.Y);
+                SetLeft(_selectedImage, newPos.X);
 
             }
-            else if (StretchMode != -1)
+            else if (_stretchMode != -1)
             {
                 // stretch both editing frame and the image
                 var newPos = e.GetPosition(this);
-                var left = GetLeft(selectedImage);
-                var top = GetTop(selectedImage);
+                var left = GetLeft(_selectedImage);
+                var top = GetTop(_selectedImage);
                 double gridSizePixelsX = ActualWidth / gridSize;
                 double gridSizePixelsY = ActualHeight / gridSize;
 
@@ -234,19 +234,19 @@ namespace CollageApp
                 double snappedY = Math.Round(newPos.Y / gridSizePixelsY) * gridSizePixelsY;
 
                 // Calculate new width and height
-                double newWidth = selectedImage.Width;
-                double newHeight = selectedImage.Height;
+                double newWidth = _selectedImage.Width;
+                double newHeight = _selectedImage.Height;
 
                 // Determine which edges are being resized
-                bool resizeLeft = (StretchMode == 0 || StretchMode == 3 || StretchMode == 5);
-                bool resizeRight = (StretchMode == 2 || StretchMode == 4 || StretchMode == 7);
-                bool resizeTop = (StretchMode == 0 || StretchMode == 1 || StretchMode == 2);
-                bool resizeBottom = (StretchMode == 5 || StretchMode == 6 || StretchMode == 7);
+                bool resizeLeft = (_stretchMode == 0 || _stretchMode == 3 || _stretchMode == 5);
+                bool resizeRight = (_stretchMode == 2 || _stretchMode == 4 || _stretchMode == 7);
+                bool resizeTop = (_stretchMode == 0 || _stretchMode == 1 || _stretchMode == 2);
+                bool resizeBottom = (_stretchMode == 5 || _stretchMode == 6 || _stretchMode == 7);
 
                 if (resizeLeft)
                 {
-                    newWidth = Math.Round((left + selectedImage.Width - newPos.X) / gridSizePixelsX) * gridSizePixelsX;
-                    SetLeft(selectedImage, snappedX);
+                    newWidth = Math.Round((left + _selectedImage.Width - newPos.X) / gridSizePixelsX) * gridSizePixelsX;
+                    SetLeft(_selectedImage, snappedX);
                 }
                 else if (resizeRight)
                 {
@@ -255,8 +255,8 @@ namespace CollageApp
 
                 if (resizeTop)
                 {
-                    newHeight = Math.Round((top + selectedImage.Height - newPos.Y) / gridSizePixelsY) * gridSizePixelsY;
-                    SetTop(selectedImage, snappedY);
+                    newHeight = Math.Round((top + _selectedImage.Height - newPos.Y) / gridSizePixelsY) * gridSizePixelsY;
+                    SetTop(_selectedImage, snappedY);
                 }
                 else if (resizeBottom)
                 {
@@ -264,12 +264,12 @@ namespace CollageApp
                 }
 
                 // Apply the snapped width and height
-                selectedImage.Width = newWidth;
-                selectedImage.Height = newHeight;
+                _selectedImage.Width = newWidth;
+                _selectedImage.Height = newHeight;
 
                 // Update the editing frame to match the resized image
-                _editingFrame.AttachToImage(selectedImage);
-                _editingFrame.AttachToImage(selectedImage);
+                _editingFrame.AttachToImage(_selectedImage);
+                _editingFrame.AttachToImage(_selectedImage);
             }
             e.Handled = true;
         }
@@ -287,8 +287,8 @@ namespace CollageApp
         {
             for (uint i = 0; i < gridSize; i++)
             {
-                _GridLines.Add(new Line { X1 = 0, Y1 = i * ActualHeight / gridSize, X2 = ActualWidth, Y2 = i * ActualHeight / gridSize, Stroke = _line_brush_color });
-                _GridLines.Add(new Line { X1 = i * ActualWidth / gridSize, Y1 = 0, X2 = i * ActualWidth / gridSize, Y2 = ActualHeight, Stroke = _line_brush_color });
+                _gridLines.Add(new Line { X1 = 0, Y1 = i * ActualHeight / gridSize, X2 = ActualWidth, Y2 = i * ActualHeight / gridSize, Stroke = _lineBrushColor });
+                _gridLines.Add(new Line { X1 = i * ActualWidth / gridSize, Y1 = 0, X2 = i * ActualWidth / gridSize, Y2 = ActualHeight, Stroke = _lineBrushColor });
             }
         }
 
@@ -301,7 +301,7 @@ namespace CollageApp
             else
             {
                 {
-                    _GridLines.Clear();
+                    _gridLines.Clear();
                 }
             }
             GridEnabled ^= true;
@@ -312,9 +312,9 @@ namespace CollageApp
     {
         private Rectangle _outline;
         private Rectangle[] _resizeHandles;
-        private int _size_rresizeHandles = 10;
-        private double top = 0;
-        private double left = 0;
+        private int _sizeResizeHandles = 10;
+        private double _top = 0;
+        private double _left = 0;
 
         public EditingFrame()
         {
@@ -333,8 +333,8 @@ namespace CollageApp
                 {
                     Stroke = Brushes.Blue,
                     Fill = Brushes.Blue,
-                    Width = _size_rresizeHandles,
-                    Height = _size_rresizeHandles
+                    Width = _sizeResizeHandles,
+                    Height = _sizeResizeHandles
                 };
                 Children.Add(_resizeHandles[i]);
             }
@@ -344,10 +344,10 @@ namespace CollageApp
         {
             _outline.Width = image.Width;
             _outline.Height = image.Height;
-            this.top = Canvas.GetTop(image);
-            this.left = Canvas.GetLeft(image);
-            SetTop(this, top);
-            SetLeft(this, left);
+            this._top = Canvas.GetTop(image);
+            this._left = Canvas.GetLeft(image);
+            SetTop(this, _top);
+            SetLeft(this, _left);
             PositionResizeHandles(image.Width, image.Height);
         }
 
@@ -355,8 +355,8 @@ namespace CollageApp
         {
             SetTop(this, newPosition.Y);
             SetLeft(this, newPosition.X);
-            this.top = newPosition.Y;
-            this.left = newPosition.X;
+            this._top = newPosition.Y;
+            this._left = newPosition.X;
 
         }
 
@@ -388,8 +388,8 @@ namespace CollageApp
         {
             for (int i = 0; i < _resizeHandles.Length; i++)
             {
-                double left = this.left + Canvas.GetLeft(_resizeHandles[i]);
-                double top = this.top + Canvas.GetTop(_resizeHandles[i]);
+                double left = this._left + Canvas.GetLeft(_resizeHandles[i]);
+                double top = this._top + Canvas.GetTop(_resizeHandles[i]);
                 double right = left + _resizeHandles[i].Width;
                 double bottom = top + _resizeHandles[i].Height;
 
