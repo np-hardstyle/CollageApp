@@ -153,6 +153,16 @@ namespace CollageApp
 
                 return;
             }
+            else if (e.Key == System.Windows.Input.Key.Delete)
+            {
+                if (this._editing)
+                {
+                    _imageStack.Remove(_selectedImage);
+                    _selectedImage = null;
+                    _editing = _isDragging = false;
+                    Children.Remove(_editingFrame);
+                }
+            }
         }
 
         private void DrawingPad_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
