@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -18,6 +19,7 @@ namespace CollageApp
         private EditingFrame _editingFrame;
         private bool editing = false;
         private bool isDragging = false;
+        private int StretchMode = -1;
         private Point selected_object_position;
         private PadImage selectedImage;
 
@@ -30,7 +32,6 @@ namespace CollageApp
             MouseLeftButtonDown += DrawingPad_MouseLeftButtonDown;
             MouseLeftButtonUp += DrawingPad_MouseLeftButtonUp;
             PreviewMouseMove += DrawingPad_PreviewMouseMove;
-            //MouseRightButtonDown += DrawingPad_MouseRightButtonDown;
             KeyDown += DrawingPad_KeyDown;
             Focusable = true;
             GridEnabled = true;
@@ -102,7 +103,7 @@ namespace CollageApp
             }
         }
 
-        // handle image dragging
+        // escape editing mode
         private void DrawingPad_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             // check if escape key is pressed (esc)
@@ -121,21 +122,39 @@ namespace CollageApp
         private void DrawingPad_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             isDragging = false;
+            StretchMode = -1;
         }
 
         private void DrawingPad_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            // center editing frame frame
+            // clicking on resizing points
             if (e.OriginalSource is Rectangle)
             {
-                isDragging = true;
+                e.GetPosition(this);
+                // check if it's just the resizing rectangle or the editing points
+                int editing_point = _editingFrame.GetResizingHandle(e.GetPosition(this));
+                if (editing_point == -1)
+                {
+                    isDragging = true;
+                }
+                else
+                {
+                    isDragging = false;
+                    StretchMode = editing_point;
+                    selected_object_position = e.GetPosition(this);
+                }
             }
-
-            // clicking on resizing points
 
             // no frame, image
             else if (e.OriginalSource is PadImage selectedImage)
             {
+
+                // check if already editing
+                if (editing)
+                {
+                    Children.Remove(_editingFrame);
+                    _editingFrame.AttachToImage(selectedImage);
+                }
                 BringToFront(selectedImage);
                 _editingFrame.AttachToImage(selectedImage);
                 this.selectedImage = selectedImage;
@@ -160,9 +179,11 @@ namespace CollageApp
 
         private void DrawingPad_PreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
+
             if (editing && isDragging)
             {
                 // change editing frame location
+                Console.WriteLine("here");
                 var newPos = e.GetPosition(this) - selected_object_position;
                 _editingFrame.MoveTo(newPos);
 
@@ -171,27 +192,66 @@ namespace CollageApp
                 SetLeft(selectedImage, newPos.X);
 
             }
+            else if (StretchMode != -1)
+            {
+                // stretch both editing frame and the image
+                var newPos = e.GetPosition(this);
+                var left = GetLeft(selectedImage);
+                var top = GetTop(selectedImage);
+                var width = selectedImage.Width;
+                var height = selectedImage.Height;
+
+                switch (StretchMode)
+                {
+                    case 0:
+                        // top left
+                        selectedImage.Width += left - newPos.X;
+                        selectedImage.Height += top - newPos.Y;
+                        SetLeft(selectedImage, newPos.X);
+                        SetTop(selectedImage, newPos.Y);
+                        break;
+                    case 1:
+                        // top center
+                        selectedImage.Height += top - newPos.Y;
+                        SetTop(selectedImage, newPos.Y);
+                        break;
+                    case 2:
+                        // top right
+                        selectedImage.Width = newPos.X - left;
+                        selectedImage.Height += top - newPos.Y;
+                        SetTop(selectedImage, newPos.Y);
+                        break;
+                    case 3:
+                        // middle left
+                        selectedImage.Width += left - newPos.X;
+                        SetLeft(selectedImage, newPos.X);
+                        break;
+                    case 4:
+                        // middle right
+                        selectedImage.Width = newPos.X - left;
+                        break;
+                    case 5:
+                        // bottom left
+                        selectedImage.Width += left - newPos.X;
+                        selectedImage.Height = newPos.Y - top;
+                        SetLeft(selectedImage, newPos.X);
+                        break;
+                    case 6:
+                        // bottom center
+                        selectedImage.Height = newPos.Y - top;
+                        break;
+                    case 7:
+                        // bottom right
+                        selectedImage.Width = newPos.X - left;
+                        selectedImage.Height = newPos.Y - top;
+                        break;
+                    default:
+                        break;
+                }
+                _editingFrame.AttachToImage(selectedImage);
+            }
             e.Handled = true;
         }
-
-        //private void DrawingPad_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        //{
-        //    if (editing)
-        //    {
-        //        Children.Remove(_editingFrame);
-        //        editing = false;
-        //    }
-        //    e.Handled = true;
-        //}
-
-        //private void DrawingPad_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        //{
-        //    if (e.OriginalSource is PadImage selectedImage)
-        //    {
-        //        BringToFront(selectedImage);
-        //    }
-        //    e.Handled = true;
-        //}
 
         private void BringToFront(UIElement element)
         {
@@ -231,6 +291,11 @@ namespace CollageApp
     {
         private Rectangle _outline;
         private Rectangle[] _resizeHandles;
+        private int _size_rresizeHandles = 6;
+        private double width = 0;
+        private double height = 0;
+        private double top = 0;
+        private double left = 0;
 
         public EditingFrame()
         {
@@ -249,10 +314,19 @@ namespace CollageApp
                 {
                     Stroke = Brushes.Blue,
                     Fill = Brushes.Blue,
-                    Width = 6,
-                    Height = 6
+                    Width = _size_rresizeHandles,
+                    Height = _size_rresizeHandles
                 };
                 Children.Add(_resizeHandles[i]);
+            }
+        }
+
+        public void _debug()
+        {
+            // print resizehanlde locations
+            foreach (var i in Children)
+            {
+                Console.WriteLine(i.ToString());
             }
         }
 
@@ -260,15 +334,22 @@ namespace CollageApp
         {
             _outline.Width = image.Width;
             _outline.Height = image.Height;
-            SetTop(this, Canvas.GetTop(image));
-            SetLeft(this, Canvas.GetLeft(image));
+            this.top = Canvas.GetTop(image);
+            this.left = Canvas.GetLeft(image);
+            SetTop(this, top);
+            SetLeft(this, left);
             PositionResizeHandles(image.Width, image.Height);
+            this.width = image.Width;
+            this.height = image.Height;
         }
 
         public void MoveTo(Vector newPosition)
         {
             SetTop(this, newPosition.Y);
             SetLeft(this, newPosition.X);
+            this.top = newPosition.Y;
+            this.left = newPosition.X;
+
         }
 
         private void PositionResizeHandles(double width, double height)
@@ -287,5 +368,31 @@ namespace CollageApp
                 SetTop(_resizeHandles[i], positions[i, 1] - halfSize);
             }
         }
+        public bool ContainsPoint(Point point)
+        {
+            double left = Canvas.GetLeft(this);
+            double top = Canvas.GetTop(this);
+            return (point.X >= left && point.X <= left + Width &&
+                    point.Y >= top && point.Y <= top + Height);
+        }
+
+        public int GetResizingHandle(Point position)
+        {
+            for (int i = 0; i < _resizeHandles.Length; i++)
+            {
+                double left = this.left + Canvas.GetLeft(_resizeHandles[i]);
+                double top = this.top + Canvas.GetTop(_resizeHandles[i]);
+                double right = left + _resizeHandles[i].Width;
+                double bottom = top + _resizeHandles[i].Height;
+
+                // Check if the point is within the bounds of the handle
+                if (position.X >= left && position.X <= right && position.Y >= top && position.Y <= bottom)
+                {
+                    return i; // Return the index of the handle
+                }
+            }
+            return -1; // Return -1 if no handle is found
+        }
+
     }
 }
