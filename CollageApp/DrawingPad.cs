@@ -281,11 +281,10 @@ namespace CollageApp
                 }
 
                 // Apply the snapped width and height
-                _selectedImage.Width = newWidth;
-                _selectedImage.Height = newHeight;
+                _selectedImage.Height = newHeight < gridSizePixelsY? gridSizePixelsY : newHeight;
+                _selectedImage.Width = newWidth < gridSizePixelsX ? gridSizePixelsX : newWidth;
 
                 // Update the editing frame to match the resized image
-                _editingFrame.AttachToImage(_selectedImage);
                 _editingFrame.AttachToImage(_selectedImage);
             }
             e.Handled = true;
@@ -329,7 +328,7 @@ namespace CollageApp
     {
         private Rectangle _outline;
         private Rectangle[] _resizeHandles;
-        private int _sizeResizeHandles = 10;
+        private int _sizeResizeHandles = 20;
         private double _top = 0;
         private double _left = 0;
 
