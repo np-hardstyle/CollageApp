@@ -226,56 +226,49 @@ namespace CollageApp
                 var newPos = e.GetPosition(this);
                 var left = GetLeft(selectedImage);
                 var top = GetTop(selectedImage);
-                double gridSizePixelsX = ActualWidth / gridSize; // Grid cell width
-                double gridSizePixelsY = ActualHeight / gridSize; // Grid cell height
+                double gridSizePixelsX = ActualWidth / gridSize;
+                double gridSizePixelsY = ActualHeight / gridSize;
 
-                switch (StretchMode)
+                // Calculate snapped positions
+                double snappedX = Math.Round(newPos.X / gridSizePixelsX) * gridSizePixelsX;
+                double snappedY = Math.Round(newPos.Y / gridSizePixelsY) * gridSizePixelsY;
+
+                // Calculate new width and height
+                double newWidth = selectedImage.Width;
+                double newHeight = selectedImage.Height;
+
+                // Determine which edges are being resized
+                bool resizeLeft = (StretchMode == 0 || StretchMode == 3 || StretchMode == 5);
+                bool resizeRight = (StretchMode == 2 || StretchMode == 4 || StretchMode == 7);
+                bool resizeTop = (StretchMode == 0 || StretchMode == 1 || StretchMode == 2);
+                bool resizeBottom = (StretchMode == 5 || StretchMode == 6 || StretchMode == 7);
+
+                if (resizeLeft)
                 {
-                    case 0: // Top-left
-                        selectedImage.Width = Math.Round((left + selectedImage.Width - newPos.X) / gridSizePixelsX) * gridSizePixelsX;
-                        selectedImage.Height = Math.Round((top + selectedImage.Height - newPos.Y) / gridSizePixelsY) * gridSizePixelsY;
-                        SetLeft(selectedImage, Math.Round(newPos.X / gridSizePixelsX) * gridSizePixelsX);
-                        SetTop(selectedImage, Math.Round(newPos.Y / gridSizePixelsY) * gridSizePixelsY);
-                        break;
-
-                    case 1: // Top-center
-                        selectedImage.Height = Math.Round((top + selectedImage.Height - newPos.Y) / gridSizePixelsY) * gridSizePixelsY;
-                        SetTop(selectedImage, Math.Round(newPos.Y / gridSizePixelsY) * gridSizePixelsY);
-                        break;
-
-                    case 2: // Top-right
-                        selectedImage.Width = Math.Round((newPos.X - left) / gridSizePixelsX) * gridSizePixelsX;
-                        selectedImage.Height = Math.Round((top + selectedImage.Height - newPos.Y) / gridSizePixelsY) * gridSizePixelsY;
-                        SetTop(selectedImage, Math.Round(newPos.Y / gridSizePixelsY) * gridSizePixelsY);
-                        break;
-
-                    case 3: // Middle-left
-                        selectedImage.Width = Math.Round((left + selectedImage.Width - newPos.X) / gridSizePixelsX) * gridSizePixelsX;
-                        SetLeft(selectedImage, Math.Round(newPos.X / gridSizePixelsX) * gridSizePixelsX);
-                        break;
-
-                    case 4: // Middle-right
-                        selectedImage.Width = Math.Round((newPos.X - left) / gridSizePixelsX) * gridSizePixelsX;
-                        break;
-
-                    case 5: // Bottom-left
-                        selectedImage.Width = Math.Round((left + selectedImage.Width - newPos.X) / gridSizePixelsX) * gridSizePixelsX;
-                        selectedImage.Height = Math.Round((newPos.Y - top) / gridSizePixelsY) * gridSizePixelsY;
-                        SetLeft(selectedImage, Math.Round(newPos.X / gridSizePixelsX) * gridSizePixelsX);
-                        break;
-
-                    case 6: // Bottom-center
-                        selectedImage.Height = Math.Round((newPos.Y - top) / gridSizePixelsY) * gridSizePixelsY;
-                        break;
-
-                    case 7: // Bottom-right
-                        selectedImage.Width = Math.Round((newPos.X - left) / gridSizePixelsX) * gridSizePixelsX;
-                        selectedImage.Height = Math.Round((newPos.Y - top) / gridSizePixelsY) * gridSizePixelsY;
-                        break;
-
-                    default:
-                        break;
+                    newWidth = Math.Round((left + selectedImage.Width - newPos.X) / gridSizePixelsX) * gridSizePixelsX;
+                    SetLeft(selectedImage, snappedX);
                 }
+                else if (resizeRight)
+                {
+                    newWidth = Math.Round((newPos.X - left) / gridSizePixelsX) * gridSizePixelsX;
+                }
+
+                if (resizeTop)
+                {
+                    newHeight = Math.Round((top + selectedImage.Height - newPos.Y) / gridSizePixelsY) * gridSizePixelsY;
+                    SetTop(selectedImage, snappedY);
+                }
+                else if (resizeBottom)
+                {
+                    newHeight = Math.Round((newPos.Y - top) / gridSizePixelsY) * gridSizePixelsY;
+                }
+
+                // Apply the snapped width and height
+                selectedImage.Width = newWidth;
+                selectedImage.Height = newHeight;
+
+                // Update the editing frame to match the resized image
+                _editingFrame.AttachToImage(selectedImage);
                 _editingFrame.AttachToImage(selectedImage);
             }
             e.Handled = true;
@@ -319,9 +312,7 @@ namespace CollageApp
     {
         private Rectangle _outline;
         private Rectangle[] _resizeHandles;
-        private int _size_rresizeHandles = 6;
-        private double width = 0;
-        private double height = 0;
+        private int _size_rresizeHandles = 10;
         private double top = 0;
         private double left = 0;
 
@@ -358,8 +349,6 @@ namespace CollageApp
             SetTop(this, top);
             SetLeft(this, left);
             PositionResizeHandles(image.Width, image.Height);
-            this.width = image.Width;
-            this.height = image.Height;
         }
 
         public void MoveTo(Vector newPosition)
