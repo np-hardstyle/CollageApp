@@ -11,6 +11,7 @@ namespace CollageApp
 {
     internal class DrawingPad : Canvas
     {
+        #pragma warning disable IDE0044
         public static uint gridSize = 3; // default size is 3
         public bool GridEnabled = true;
         private static Brush _lineBrushColor = Brushes.Black;
@@ -22,6 +23,7 @@ namespace CollageApp
         private int _stretchMode = -1;
         private Point _selectedObjectPosition;
         private PadImage _selectedImage;
+        #pragma warning restore IDE0044
 
         public DrawingPad() : base()
         {
