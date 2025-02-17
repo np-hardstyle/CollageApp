@@ -14,7 +14,8 @@ namespace CollageApp
     internal class DrawingPad : Canvas
     {
         #pragma warning disable IDE0044
-        public static uint gridSize = 3; // default size is 3
+        public static uint gridSizeY = 3; // default size is 3
+        public static uint gridSizeX = 5;
         public bool GridEnabled = true;
         private static Brush _lineBrushColor = Brushes.Black;
         private ObservableCollection<PadImage> _imageStack = new ObservableCollection<PadImage>();
@@ -102,8 +103,8 @@ namespace CollageApp
                 {
                     if (!Children.Contains(newImage))
                     {
-                        newImage.Width = ActualWidth / gridSize * newImage.stretch_factor.Item1;
-                        newImage.Height = ActualHeight / gridSize * newImage.stretch_factor.Item2;
+                        newImage.Width = ActualWidth / gridSizeY * newImage.stretch_factor.Item1;
+                        newImage.Height = ActualHeight / gridSizeX * newImage.stretch_factor.Item2;
                         SetTop(newImage, newImage.Y);
                         SetLeft(newImage, newImage.X);
                         Children.Add(newImage);
@@ -133,7 +134,7 @@ namespace CollageApp
             }
             else if (e.Action == NotifyCollectionChangedAction.Reset)
             {
-                for (uint i = 0; i < gridSize * 2; i++)
+                for (uint i = 0; i < gridSizeY + gridSizeX; i++)
                 {
                     Children.Remove(Children[0]);
                 }
@@ -193,11 +194,11 @@ namespace CollageApp
             {
                 // get cell dimentions and floor to get quadrant number then multiply by cell dimensions
                 var cursorPos = e.GetPosition(this);
-                double gridSizePixelsX = ActualWidth / gridSize;
-                double gridSizePixelsY = ActualHeight / gridSize;
+                double gridSizeYPixelsX = ActualWidth / gridSizeY;
+                double gridSizeYPixelsY = ActualHeight / gridSizeX;
 
-                double snappedLeft = Math.Floor(cursorPos.X / gridSizePixelsX) * gridSizePixelsX;
-                double snappedTop = Math.Floor(cursorPos.Y / gridSizePixelsY) * gridSizePixelsY;
+                double snappedLeft = Math.Floor(cursorPos.X / gridSizeYPixelsX) * gridSizeYPixelsX;
+                double snappedTop = Math.Floor(cursorPos.Y / gridSizeYPixelsY) * gridSizeYPixelsY;
 
                 SetLeft(_selectedImage, snappedLeft);
                 SetTop(_selectedImage, snappedTop);
@@ -274,12 +275,12 @@ namespace CollageApp
                 var newPos = e.GetPosition(this);
                 var left = GetLeft(_selectedImage);
                 var top = GetTop(_selectedImage);
-                double gridSizePixelsX = ActualWidth / gridSize;
-                double gridSizePixelsY = ActualHeight / gridSize;
+                double gridSizeYPixelsX = ActualWidth / gridSizeY;
+                double gridSizeYPixelsY = ActualHeight / gridSizeX;
 
                 // Calculate snapped positions
-                double snappedX = Math.Round(newPos.X / gridSizePixelsX) * gridSizePixelsX;
-                double snappedY = Math.Round(newPos.Y / gridSizePixelsY) * gridSizePixelsY;
+                double snappedX = Math.Round(newPos.X / gridSizeYPixelsX) * gridSizeYPixelsX;
+                double snappedY = Math.Round(newPos.Y / gridSizeYPixelsY) * gridSizeYPixelsY;
 
                 // Calculate new width and height
                 double newWidth = _selectedImage.Width;
@@ -293,27 +294,27 @@ namespace CollageApp
 
                 if (resizeLeft)
                 {
-                    newWidth = Math.Round((left + _selectedImage.Width - newPos.X) / gridSizePixelsX) * gridSizePixelsX;
+                    newWidth = Math.Round((left + _selectedImage.Width - newPos.X) / gridSizeYPixelsX) * gridSizeYPixelsX;
                     SetLeft(_selectedImage, snappedX);
                 }
                 else if (resizeRight)
                 {
-                    newWidth = Math.Round((newPos.X - left) / gridSizePixelsX) * gridSizePixelsX;
+                    newWidth = Math.Round((newPos.X - left) / gridSizeYPixelsX) * gridSizeYPixelsX;
                 }
 
                 if (resizeTop)
                 {
-                    newHeight = Math.Round((top + _selectedImage.Height - newPos.Y) / gridSizePixelsY) * gridSizePixelsY;
+                    newHeight = Math.Round((top + _selectedImage.Height - newPos.Y) / gridSizeYPixelsY) * gridSizeYPixelsY;
                     SetTop(_selectedImage, snappedY);
                 }
                 else if (resizeBottom)
                 {
-                    newHeight = Math.Round((newPos.Y - top) / gridSizePixelsY) * gridSizePixelsY;
+                    newHeight = Math.Round((newPos.Y - top) / gridSizeYPixelsY) * gridSizeYPixelsY;
                 }
 
                 // Apply the snapped width and height
-                _selectedImage.Height = newHeight < gridSizePixelsY? gridSizePixelsY : newHeight;
-                _selectedImage.Width = newWidth < gridSizePixelsX ? gridSizePixelsX : newWidth;
+                _selectedImage.Height = newHeight < gridSizeYPixelsY? gridSizeYPixelsY : newHeight;
+                _selectedImage.Width = newWidth < gridSizeYPixelsX ? gridSizeYPixelsX : newWidth;
 
                 // Update the editing frame to match the resized image
                 _editingFrame.AttachToImage(_selectedImage);
@@ -332,10 +333,16 @@ namespace CollageApp
 
         private void DrawGrid()
         {
-            for (uint i = 0; i < gridSize; i++)
+            for (uint i = 0; i < gridSizeY; i++)
             {
-                _gridLines.Add(new Line { X1 = 0, Y1 = i * ActualHeight / gridSize, X2 = ActualWidth, Y2 = i * ActualHeight / gridSize, Stroke = _lineBrushColor });
-                _gridLines.Add(new Line { X1 = i * ActualWidth / gridSize, Y1 = 0, X2 = i * ActualWidth / gridSize, Y2 = ActualHeight, Stroke = _lineBrushColor });
+                
+                // vertical lines
+                _gridLines.Add(new Line { X1 = i * ActualWidth / gridSizeY, Y1 = 0, X2 = i * ActualWidth / gridSizeY, Y2 = ActualHeight, Stroke = _lineBrushColor });
+            }
+            for (uint i = 0; i < gridSizeX; i++)
+            {
+                // horizontal lines
+                _gridLines.Add(new Line { X1 = 0, Y1 = i * ActualHeight / gridSizeX, X2 = ActualWidth, Y2 = i * ActualHeight / gridSizeX, Stroke = _lineBrushColor });
             }
         }
 
