@@ -139,18 +139,20 @@ namespace CollageApp
 
             if (editing)
             {
-                isDragging = false;
-
+                // get cell dimentions and floor to get quadrant number then multiply by cell dimensions
                 var cursorPos = e.GetPosition(this);
+                double gridSizePixelsX = ActualWidth / gridSize;
+                double gridSizePixelsY = ActualHeight / gridSize;
 
-                double snappedLeft = Math.Round(cursorPos.X / gridSize) * gridSize;
-                double snappedTop = Math.Round(cursorPos.Y / gridSize) * gridSize;
+                double snappedLeft = Math.Floor(cursorPos.X / gridSizePixelsX) * gridSizePixelsX;
+                double snappedTop = Math.Floor(cursorPos.Y / gridSizePixelsY) * gridSizePixelsY;
 
                 SetLeft(selectedImage, snappedLeft);
                 SetTop(selectedImage, snappedTop);
 
                 _editingFrame.MoveTo(new Vector(snappedLeft, snappedTop));
             }
+            e.Handled = true;
         }
 
         private void DrawingPad_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
