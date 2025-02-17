@@ -136,6 +136,21 @@ namespace CollageApp
         {
             isDragging = false;
             StretchMode = -1;
+
+            if (editing)
+            {
+                isDragging = false;
+
+                var cursorPos = e.GetPosition(this);
+
+                double snappedLeft = Math.Round(cursorPos.X / gridSize) * gridSize;
+                double snappedTop = Math.Round(cursorPos.Y / gridSize) * gridSize;
+
+                SetLeft(selectedImage, snappedLeft);
+                SetTop(selectedImage, snappedTop);
+
+                _editingFrame.MoveTo(new Vector(snappedLeft, snappedTop));
+            }
         }
 
         private void DrawingPad_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
