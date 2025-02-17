@@ -328,7 +328,7 @@ namespace CollageApp
     {
         private Rectangle _outline;
         private Rectangle[] _resizeHandles;
-        private int _sizeResizeHandles = 10;
+        private int _sizeResizeHandles = 20;
         private double _top = 0;
         private double _left = 0;
 
