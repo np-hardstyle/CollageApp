@@ -8,10 +8,12 @@ using System.Globalization;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace CollageApp
@@ -24,21 +26,22 @@ namespace CollageApp
         private ObservableCollection<PadImage> _ImageStack =    new ObservableCollection<PadImage>();
         private ObservableCollection<Line> _GridLines =         new ObservableCollection<Line>();
         private Rectangle _Highlight =                          new Rectangle();
-        private List<Rectangle> _EditRectangle =                new List<Rectangle>();
+        private Rectangle outline, topcenter, topright, right, bottomright, bottomcenter, bottomleft, left, topleft;
         private bool selected =                                 false;
+        private bool editing =                                  false;
         private Point selected_object_position;
 
         public DrawingPad() : base()
         {
-            AllowDrop =                         true;
-            SizeChanged +=                      _DrawingPad_SizeChanged;
-            _ImageStack.CollectionChanged +=    ImageStack_CollectionChanged;
-            _GridLines.CollectionChanged +=     _GridLines_CollectionChanged;
-            MouseLeftButtonDown +=              DrawingPad_MouseLeftButtonDown;
-            MouseLeftButtonUp +=                DrawingPad_MouseLeftButtonUp;
-            PreviewMouseMove +=                 DrawingPad_PreviewMouseMove;
-            MouseRightButtonDown +=             DrawingPad_MouseRightButtonDown;
-            Focusable =                         true;
+            AllowDrop = true;
+            SizeChanged += _DrawingPad_SizeChanged;
+            _ImageStack.CollectionChanged += ImageStack_CollectionChanged;
+            _GridLines.CollectionChanged += _GridLines_CollectionChanged;
+            MouseLeftButtonDown += DrawingPad_MouseLeftButtonDown;
+            MouseLeftButtonUp += DrawingPad_MouseLeftButtonUp;
+            PreviewMouseMove += DrawingPad_PreviewMouseMove;
+            MouseRightButtonDown += DrawingPad_MouseRightButtonDown;
+            Focusable = true;
 
             _Highlight = new Rectangle
             {
@@ -49,30 +52,126 @@ namespace CollageApp
                 Height = 0,
             };
 
-            Rectangle outline, topcenter, topright, right, bottomright, bottomcenter, bottomleft, left, topleft;
-            outline = topcenter = topright = right = bottomright = bottomcenter = bottomleft = left = topleft = new Rectangle
+            outline = new Rectangle
             {
-                Stroke = Brushes.Blue,  // Red border
-                StrokeThickness = 3,   // Border thickness
-                Fill = Brushes.Blue,
+                Stroke = Brushes.Blue,
+                StrokeThickness = 3,
+                Fill = Brushes.Transparent,
                 Width = 0,
                 Height = 0,
             };
+
+            topcenter = topright = right = bottomright = bottomcenter = bottomleft = left = topleft = new Rectangle
+            {
+                Stroke = Brushes.Blue,
+                Width = 0,
+                Height = 0,
+            };
+
+            topcenter.Fill =
+                topright.Fill =
+                right.Fill =
+                bottomright.Fill =
+                bottomcenter.Fill =
+                bottomleft.Fill =
+                left.Fill =
+                topleft.Fill =
+                Brushes.Blue;
+
+            topcenter.StrokeThickness =
+                topright.StrokeThickness =
+                right.StrokeThickness =
+                bottomright.StrokeThickness =
+                bottomcenter.StrokeThickness =
+                bottomleft.StrokeThickness =
+                left.StrokeThickness =
+                topleft.StrokeThickness =
+                6;
 
             DrawGrid();
 
         }
 
+        //private void DrawingPad_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        //{
+        //    if (editing)
+        //    {
+        //        editing = false;
+        //        Children.RemoveAt(Children.Count - 1);
+        //    }
+        //    e.Handled = true;
+        //}
+
         private void DrawingPad_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var original_source = e.OriginalSource;
+
+            if (editing)
+            {
+                editing = false;
+                for (int i = 1; i <= 2; i++)
+                {
+                    Children.RemoveAt(Children.Count - 1);
+                }
+                e.Handled = true;
+                return;
+            }
 
             // check if it's an image
             if (original_source is PadImage)
             {
                 PadImage selected_image = (PadImage)original_source;
+                var removal_index = Children.IndexOf(selected_image);
+                var top = GetTop(Children[removal_index]);
+                var left = GetLeft(Children[removal_index]);
 
-            }
+                // children
+                Children.Remove(selected_image);
+                SetTop(selected_image, top);
+                SetLeft(selected_image, left);
+                Children.Add(selected_image);
+
+                var image_width = selected_image.Width;
+                var image_height = selected_image.Height;
+
+                // outline
+                this.outline.Width = image_width;
+                this.outline.Height = image_height;
+                SetTop(outline, top);
+                SetLeft(outline, left);
+                Children.Add(outline);
+
+                // draw editing points
+
+                var editing_point_size = image_width / 20;
+
+                //topleft
+                topleft.Width = editing_point_size;
+                topleft.Height = editing_point_size;
+                SetTop(topleft, top);
+                SetLeft(topleft, left);
+                Children.Add(topleft);
+
+                //topright
+                //topright.Width = editing_point_size;
+                //topright.Height = editing_point_size;
+                //SetTop(topright, top);
+                //SetLeft(topright, left + image_width);
+                //Children.Add(topright);
+
+                //topcenter
+                //topcenter.Width = editing_point_size;
+                //topcenter.Height = editing_point_size;
+                //SetTop(topcenter, top);
+                //SetLeft(topcenter, left + image_width / 2);
+                //Children.Add(topcenter);
+
+                selected_object_position = e.GetPosition(selected_image);
+
+                editing = true;
+                e.Handled = true;
+                return;
+            }            
 
         }
 
@@ -145,12 +244,8 @@ namespace CollageApp
                 Console.WriteLine("Selected Object Position: " + selected_object_position.ToString());
 
             }
-            e.Handled = true;
-        }
 
-        private void DrawingPad_ImageDragging(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            
+            e.Handled = true;
         }
 
         public void ToggleGrid()
