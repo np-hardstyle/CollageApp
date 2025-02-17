@@ -7,6 +7,7 @@ using System.Windows.Shapes;
 using System.Windows;
 using System;
 using System.Collections.Generic;
+using Microsoft.Win32;
 
 namespace CollageApp
 {
@@ -161,6 +162,26 @@ namespace CollageApp
                     _selectedImage = null;
                     _editing = _isDragging = false;
                     Children.Remove(_editingFrame);
+                }
+            }
+
+            // insert new image (i key)
+            else if (e.Key == System.Windows.Input.Key.I)
+            {
+                OpenFileDialog _dialog = new OpenFileDialog
+                {
+                    Title = "Select an image",
+                    Filter = "Valid Image Files| *.jpg; *.jpeg; *.png;",
+                    CheckFileExists = true,
+                };
+
+                if (_dialog.ShowDialog() == true)
+                {
+                    this.AddImage(_dialog.FileName);
+                    //ImageDrawing temp = new ImageDrawing();
+                    //temp.ImageSource = new BitmapImage(new Uri(_dialog.FileName));
+                    //temp.Rect = new Rect(0, 0, 100, 100);
+                    //CollageCanvas.Children.Add(temp);
                 }
             }
         }
