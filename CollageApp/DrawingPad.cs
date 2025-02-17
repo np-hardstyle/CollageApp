@@ -163,16 +163,11 @@ namespace CollageApp
             {
                 // check if it's just the resizing rectangle or the editing points
                 int editing_point = _editingFrame.GetResizingHandle(e.GetPosition(this));
-                if (editing_point == -1)
-                {
-                    _isDragging = true;
-                }
-                else
-                {
-                    _isDragging = false;
-                    _stretchMode = editing_point;
-                    _selectedObjectPosition = e.GetPosition(this);
-                }
+                _isDragging = (editing_point == -1);
+                _stretchMode = _isDragging ? -1 : editing_point;
+
+                // if it's dragging, don't overwrite the image's location
+                _selectedObjectPosition = _isDragging ? e.GetPosition(_selectedImage) : e.GetPosition(this);
             }
 
             // image is not selected yet
@@ -183,26 +178,26 @@ namespace CollageApp
                 if (_editing)
                 {
                     Children.Remove(_editingFrame);
-                    _editingFrame.AttachToImage(selectedImage);
                 }
-                BringToFront(selectedImage);
+
                 _editingFrame.AttachToImage(selectedImage);
+                BringToFront(selectedImage);
+
                 this._selectedImage = selectedImage;
-                Children.Add(_editingFrame);
                 _selectedObjectPosition = e.GetPosition(selectedImage);
-                _editing = true;
-                _isDragging = true;
+                _editing = _isDragging = true;
+               
+                Children.Add(_editingFrame);
+
                 return;
             }
 
             // exiting edit mode by clicking anywhere but image or editing frame
             else
             {
-                this._editing = false;
-                e.Handled = true;
+                _editing = _isDragging = false;
+                _selectedImage = null;
                 Children.Remove(_editingFrame);
-                this._selectedImage = null;
-                this._isDragging = false;
             }
             e.Handled = true;
         }
@@ -322,7 +317,7 @@ namespace CollageApp
         {
             _outline = new Rectangle
             {
-                Stroke = Brushes.Blue,
+                Stroke = Brushes.Red,
                 StrokeThickness = 3,
                 Fill = Brushes.Transparent
             };
