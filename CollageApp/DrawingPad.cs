@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows;
 using System;
+using System.Collections.Generic;
 
 namespace CollageApp
 {
@@ -46,6 +47,26 @@ namespace CollageApp
         {
             _imageStack.Add(new PadImage(filepath));
         }
+
+        public void ShowAllImageProperties()
+        {
+            List<string> imageProperties = new List<string>();
+
+            foreach (var image in _imageStack)
+            {
+                double left = Canvas.GetLeft(image);
+                double top = Canvas.GetTop(image);
+                double width = image.Width;
+                double height = image.Height;
+
+                string propertyText = $"{image.filepath} at X: {left}, Y: {top} | Width: {width}, Height: {height}";
+                imageProperties.Add(propertyText);
+            }
+
+            ImagePropertiesWindow propertiesWindow = new ImagePropertiesWindow(imageProperties);
+            propertiesWindow.Show();
+        }
+
 
         private void _DrawingPad_SizeChanged(object sender, SizeChangedEventArgs e)
         {

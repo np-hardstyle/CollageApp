@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using Microsoft.Win32;
 
@@ -18,6 +19,7 @@ namespace CollageApp
     /// </summary>
     public partial class MainWindow : Window
     {
+        bool Enable_Properties = false;
         public MainWindow()
         {
             InitializeComponent();
@@ -32,6 +34,14 @@ namespace CollageApp
             // setup file open button
             FileOpenButton.IsEnabled = true;
             FileOpenButton.Click += MenuItem_Click;
+
+            // properties
+            Properties.Click += Properties_Click;
+        }
+
+        private void Properties_Click(object sender, RoutedEventArgs e)
+        {
+            CollageCanvas.ShowAllImageProperties();
         }
 
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
