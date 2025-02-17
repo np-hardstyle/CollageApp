@@ -208,7 +208,6 @@ namespace CollageApp
             if (_editing && _isDragging)
             {
                 // change editing frame location
-                Console.WriteLine("here");
                 var newPos = e.GetPosition(this) - _selectedObjectPosition;
                 _editingFrame.MoveTo(newPos);
 
