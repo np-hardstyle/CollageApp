@@ -14,10 +14,10 @@ namespace CollageApp
     internal class DrawingPad : Canvas
     {
         #pragma warning disable IDE0044
-        public static uint gridSizeX = 3; // default size is 3
-        public static uint gridSizeY = 3;
+        public static uint gridSizeX =6; // default size is 3
+        public static uint gridSizeY = 5;
         public bool GridEnabled = true;
-        private static Brush _lineBrushColor = Brushes.Black;
+        private static Brush _lineBrushColor = Brushes.White;
         private ObservableCollection<PadImage> _imageStack = new ObservableCollection<PadImage>();
         private ObservableCollection<Line> _gridLines = new ObservableCollection<Line>();
         private EditingFrame _editingFrame;
@@ -141,49 +141,50 @@ namespace CollageApp
             }
         }
 
-        // escape editing mode
         private void DrawingPad_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            // check if escape key is pressed (esc)
-            if (e.Key == System.Windows.Input.Key.Escape)
+            switch(e.Key)
             {
-                this._editing = false;
-                e.Handled = true;
-                Children.Remove(_editingFrame);
-                this._selectedImage = null;
-                this._isDragging = false;
+                case System.Windows.Input.Key.Escape:
+                    {
+                        this._editing = false;
+                        e.Handled = true;
+                        Children.Remove(_editingFrame);
+                        this._selectedImage = null;
+                        this._isDragging = false;
+                        break;
+                    }
 
-                return;
-            }
-            else if (e.Key == System.Windows.Input.Key.Delete)
-            {
-                if (this._editing)
-                {
-                    _imageStack.Remove(_selectedImage);
-                    _selectedImage = null;
-                    _editing = _isDragging = false;
-                    Children.Remove(_editingFrame);
-                }
-            }
+                case System.Windows.Input.Key.Delete:
+                    {
+                        _imageStack.Remove(_selectedImage); // return false if not found, so this is memory safe
+                        _selectedImage = null;
+                        _editing = _isDragging = false;
+                        Children.Remove(_editingFrame);
+                        break;
+                    }
 
-            // insert new image (i key)
-            else if (e.Key == System.Windows.Input.Key.I)
-            {
-                OpenFileDialog _dialog = new OpenFileDialog
-                {
-                    Title = "Select an image",
-                    Filter = "Valid Image Files| *.jpg; *.jpeg; *.png;",
-                    CheckFileExists = true,
-                };
+                case System.Windows.Input.Key.I:
+                    {
+                        this._isDragging = false;
+                        OpenFileDialog _dialog = new OpenFileDialog
+                        {
+                            Title = "Select an image",
+                            Filter = "Valid Image Files| *.jpg; *.jpeg; *.png;",
+                            CheckFileExists = true,
+                        };
 
-                if (_dialog.ShowDialog() == true)
-                {
-                    this.AddImage(_dialog.FileName);
-                    //ImageDrawing temp = new ImageDrawing();
-                    //temp.ImageSource = new BitmapImage(new Uri(_dialog.FileName));
-                    //temp.Rect = new Rect(0, 0, 100, 100);
-                    //CollageCanvas.Children.Add(temp);
-                }
+                        if (_dialog.ShowDialog() == true)
+                        {
+                            this.AddImage(_dialog.FileName);
+                        }
+                        break;
+                    }
+
+                default:
+                    {
+                        break;
+                    }
             }
         }
 
@@ -194,11 +195,11 @@ namespace CollageApp
             {
                 // get cell dimentions and floor to get quadrant number then multiply by cell dimensions
                 var cursorPos = e.GetPosition(this);
-                double gridSizeXPixelsX = ActualWidth / gridSizeX;
-                double gridSizeXPixelsY = ActualHeight / gridSizeY;
+                double gridPixelSizeX = ActualWidth / gridSizeX;
+                double gridPixelSizeY = ActualHeight / gridSizeY;
 
-                double snappedLeft = Math.Floor(cursorPos.X / gridSizeXPixelsX) * gridSizeXPixelsX;
-                double snappedTop = Math.Floor(cursorPos.Y / gridSizeXPixelsY) * gridSizeXPixelsY;
+                double snappedLeft = Math.Floor(cursorPos.X / gridPixelSizeX) * gridPixelSizeX;
+                double snappedTop = Math.Floor(cursorPos.Y / gridPixelSizeY) * gridPixelSizeY;
 
                 SetLeft(_selectedImage, snappedLeft);
                 SetTop(_selectedImage, snappedTop);
@@ -275,12 +276,12 @@ namespace CollageApp
                 var newPos = e.GetPosition(this);
                 var left = GetLeft(_selectedImage);
                 var top = GetTop(_selectedImage);
-                double gridSizeXPixelsX = ActualWidth / gridSizeX;
-                double gridSizeXPixelsY = ActualHeight / gridSizeY;
+                double gridPixelSizeX = ActualWidth / gridSizeX;
+                double gridPixelSizeY = ActualHeight / gridSizeY;
 
                 // Calculate snapped positions
-                double snappedX = Math.Round(newPos.X / gridSizeXPixelsX) * gridSizeXPixelsX;
-                double snappedY = Math.Round(newPos.Y / gridSizeXPixelsY) * gridSizeXPixelsY;
+                double snappedX = Math.Round(newPos.X / gridPixelSizeX) * gridPixelSizeX;
+                double snappedY = Math.Round(newPos.Y / gridPixelSizeY) * gridPixelSizeY;
 
                 // Calculate new width and height
                 double newWidth = _selectedImage.Width;
@@ -294,27 +295,27 @@ namespace CollageApp
 
                 if (resizeLeft)
                 {
-                    newWidth = Math.Round((left + _selectedImage.Width - newPos.X) / gridSizeXPixelsX) * gridSizeXPixelsX;
+                    newWidth = Math.Round((left + _selectedImage.Width - newPos.X) / gridPixelSizeX) * gridPixelSizeX;
                     SetLeft(_selectedImage, snappedX);
                 }
                 else if (resizeRight)
                 {
-                    newWidth = Math.Round((newPos.X - left) / gridSizeXPixelsX) * gridSizeXPixelsX;
+                    newWidth = Math.Round((newPos.X - left) / gridPixelSizeX) * gridPixelSizeX;
                 }
 
                 if (resizeTop)
                 {
-                    newHeight = Math.Round((top + _selectedImage.Height - newPos.Y) / gridSizeXPixelsY) * gridSizeXPixelsY;
+                    newHeight = Math.Round((top + _selectedImage.Height - newPos.Y) / gridPixelSizeY) * gridPixelSizeY;
                     SetTop(_selectedImage, snappedY);
                 }
                 else if (resizeBottom)
                 {
-                    newHeight = Math.Round((newPos.Y - top) / gridSizeXPixelsY) * gridSizeXPixelsY;
+                    newHeight = Math.Round((newPos.Y - top) / gridPixelSizeY) * gridPixelSizeY;
                 }
 
                 // Apply the snapped width and height
-                _selectedImage.Height = newHeight < gridSizeXPixelsY? gridSizeXPixelsY : newHeight;
-                _selectedImage.Width = newWidth < gridSizeXPixelsX ? gridSizeXPixelsX : newWidth;
+                _selectedImage.Height = newHeight < gridPixelSizeY? gridPixelSizeY : newHeight;
+                _selectedImage.Width = newWidth < gridPixelSizeX ? gridPixelSizeX : newWidth;
 
                 // Update the editing frame to match the resized image
                 _editingFrame.AttachToImage(_selectedImage);
@@ -335,7 +336,6 @@ namespace CollageApp
         {
             for (uint i = 0; i < gridSizeX; i++)
             {
-                
                 // vertical lines
                 _gridLines.Add(new Line { X1 = i * ActualWidth / gridSizeX, Y1 = 0, X2 = i * ActualWidth / gridSizeX, Y2 = ActualHeight, Stroke = _lineBrushColor });
             }
@@ -366,7 +366,7 @@ namespace CollageApp
     {
         private Rectangle _outline;
         private Rectangle[] _resizeHandles;
-        private int _sizeResizeHandles = 20;
+        private int _sizeResizeHandles = 10;
         private double _top = 0;
         private double _left = 0;
 
