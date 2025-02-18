@@ -14,17 +14,31 @@ namespace CollageApp
     internal class DrawingPad : Canvas
     {
         #pragma warning disable IDE0044
+
+        // grid size dimentions (int only)
         public static uint gridSizeX = 12; // default size is 3
         public static uint gridSizeY = 10;
+
+        // flags for image editing
         public bool GridEnabled = true;
-        private static Brush _lineBrushColor = Brushes.White;
-        private ObservableCollection<PadImage> _imageStack = new ObservableCollection<PadImage>();
-        private ObservableCollection<Line> _gridLines = new ObservableCollection<Line>();
-        private EditingFrame _editingFrame;
         private bool _editing = false;
         private bool _isDragging = false;
         private int _stretchMode = -1;
+
+        // either current image or highlight position
         private Point _selectedObjectPosition;
+
+        // grid line color (not background color on cavnas)
+        private static Brush _lineBrushColor = Brushes.White;
+
+        // mutable deque for storing canvas objects (images and gridlines are on the same cavnas plane)
+        private ObservableCollection<PadImage> _imageStack = new ObservableCollection<PadImage>();
+        private ObservableCollection<Line> _gridLines = new ObservableCollection<Line>();
+
+        // focus UI element (last in on canvas object stack)
+        private EditingFrame _editingFrame;
+
+        // for event handlers to identify which image is being edited (referenced from canvas object)
         private PadImage _selectedImage;
         #pragma warning restore IDE0044
 
