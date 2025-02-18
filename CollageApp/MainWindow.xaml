@@ -4,23 +4,22 @@
         xmlns:local="clr-namespace:CollageApp"
         Title="CollageMaker" Height="448" Width="726"
         FocusManager.FocusedElement="{Binding ElementName=CollageCanvas}">
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
         <Menu Grid.Row="0">
             <MenuItem Name="FileTab" Header="File">
                 <MenuItem Name="FileOpenButton" Header="Image"/>
                 <MenuItem Name="ConfigOpenButton" Header="Config"/>
             </MenuItem>
-            <CheckBox Name="GridCheckBox">
-                Grid
-            </CheckBox>
-            <Button Name ="Properties">
-                Properties
-            </Button>
+            <CheckBox Name="GridCheckBox">Grid</CheckBox>
+            <Button Name="Properties">Properties</Button>
         </Menu>
+
         <local:DrawingPad x:Name="CollageCanvas" Grid.Row="1"/>
     </Grid>
 </Window>
