@@ -14,8 +14,8 @@ namespace CollageApp
     internal class DrawingPad : Canvas
     {
         #pragma warning disable IDE0044
-        public static uint gridSizeX =6; // default size is 3
-        public static uint gridSizeY = 5;
+        public static uint gridSizeX = 12; // default size is 3
+        public static uint gridSizeY = 10;
         public bool GridEnabled = true;
         private static Brush _lineBrushColor = Brushes.White;
         private ObservableCollection<PadImage> _imageStack = new ObservableCollection<PadImage>();
@@ -41,6 +41,10 @@ namespace CollageApp
             Focusable = true;
             GridEnabled = true;
 
+            // background color
+            this.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#222222"));
+
+            // focusing element
             _editingFrame = new EditingFrame();
             DrawGrid();
         }
@@ -366,7 +370,7 @@ namespace CollageApp
     {
         private Rectangle _outline;
         private Rectangle[] _resizeHandles;
-        private int _sizeResizeHandles = 10;
+        protected private int _sizeResizeHandles = 10;
         private double _top = 0;
         private double _left = 0;
 
@@ -385,8 +389,8 @@ namespace CollageApp
             {
                 _resizeHandles[i] = new Rectangle
                 {
-                    Stroke = Brushes.Blue,
-                    Fill = Brushes.Blue,
+                    Stroke = Brushes.Red,
+                    Fill = Brushes.White,
                     Width = _sizeResizeHandles,
                     Height = _sizeResizeHandles
                 };
