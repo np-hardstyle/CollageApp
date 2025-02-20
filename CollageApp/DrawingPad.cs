@@ -1,14 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Controls;
-using System.Windows.Media.Media3D;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows;
 using System;
 using System.Collections.Generic;
 using Microsoft.Win32;
-using System.Xml.Linq;
 using System.Xml.Linq;
 using System.IO;
 using System.Linq;
@@ -102,8 +100,6 @@ namespace CollageApp
                 double width = double.Parse(image.Attribute("width")?.Value ?? "0");
                 double height = double.Parse(image.Attribute("height")?.Value ?? "0");
 
-
-
                 if (!string.IsNullOrEmpty(path))
                 {
                     PadImage newImage = new PadImage(path)
@@ -111,7 +107,11 @@ namespace CollageApp
                         X = x,
                         Y = y,
                         Width = width,
-                        Height = height
+                        Height = height,
+                        stretch_factor = (
+                            width / ActualWidth / gridSizeX,
+                            height / ActualHeight / gridSizeY
+                        )
                     };
 
                     if (!_imageStack.Contains(newImage))
