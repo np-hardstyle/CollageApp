@@ -8,6 +8,10 @@ using System.Windows;
 using System;
 using System.Collections.Generic;
 using Microsoft.Win32;
+using System.Xml.Linq;
+using System.Xml.Linq;
+using System.IO;
+using System.Linq;
 
 namespace CollageApp
 {
@@ -16,8 +20,8 @@ namespace CollageApp
         #pragma warning disable IDE0044
 
         // grid size dimentions (int only)
-        public static uint gridSizeX = 12; // default size is 3
-        public static uint gridSizeY = 10;
+        public static uint gridSizeX = 3; // default size is 3
+        public static uint gridSizeY = 3;
 
         // flags for image editing
         public bool GridEnabled = true;
@@ -42,6 +46,8 @@ namespace CollageApp
         private PadImage _selectedImage;
         #pragma warning restore IDE0044
 
+        
+
         public DrawingPad() : base()
         {
             AllowDrop = true;
@@ -54,7 +60,6 @@ namespace CollageApp
             KeyDown += DrawingPad_KeyDown;
             Focusable = true;
             GridEnabled = true;
-
             // background color
             this.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#222222"));
 
@@ -66,6 +71,77 @@ namespace CollageApp
         public void AddImage(string filepath)
         {
             _imageStack.Add(new PadImage(filepath));
+        }
+
+
+        /*\
+         * 
+         * Example
+         * 
+         * <CanvasConfig>
+             *  <Images>
+             *      <PadImage filepath="C:\Images\example1.jpg" X="2" Y="3" stretch_factor_x="1" stretch_factor_y="2" />
+             *      <PadImage filepath="C:\Images\example2.png" X="5" Y="1" stretch_factor_x="2" stretch_factor_y="3" />
+             *      <PadImage filepath="C:\Images\example3.jpg" X="8" Y="4" stretch_factor_x="3" stretch_factor_y="3" />
+             *  </Images>
+         *  </CanvasConfig>
+
+         */
+        public void ApplyConfig(string filepath)
+        {
+            if (!File.Exists(filepath)) return;
+
+            XDocument config = XDocument.Load(filepath);
+            var images = config.Descendants("PadImage");
+
+            foreach (var image in images)
+            {
+                string path = image.Attribute("filepath")?.Value;
+                double x = double.Parse(image.Attribute("x")?.Value ?? "0");
+                double y = double.Parse(image.Attribute("y")?.Value ?? "0");
+                double width = double.Parse(image.Attribute("width")?.Value ?? "0");
+                double height = double.Parse(image.Attribute("height")?.Value ?? "0");
+
+
+
+                if (!string.IsNullOrEmpty(path))
+                {
+                    PadImage newImage = new PadImage(path)
+                    {
+                        X = x,
+                        Y = y,
+                        Width = width,
+                        Height = height
+                    };
+
+                    if (!_imageStack.Contains(newImage))
+                        _imageStack.Add(newImage);
+                }
+            }
+        }
+
+        public void SaveConfig(string filepath)
+        {
+            XElement root = new XElement("CanvasConfig");
+            XElement imagesElement = new XElement("Images");
+
+            foreach (var image in _imageStack)
+            {
+                XElement imageElement = new XElement("PadImage",
+                    new XAttribute("filepath", image.filepath),
+                    new XAttribute("X", image.X),
+                    new XAttribute("Y", image.Y),
+                    new XAttribute("stretch_factor_x", image.stretch_factor.Item1),
+                    new XAttribute("stretch_factor_y", image.stretch_factor.Item2)
+                );
+
+                imagesElement.Add(imageElement);
+            }
+
+            root.Add(imagesElement);
+
+            XDocument config = new XDocument(root);
+            config.Save(filepath);
         }
 
         public void ShowAllImageProperties()
@@ -83,7 +159,7 @@ namespace CollageApp
                 imageProperties.Add(propertyText);
             }
 
-            ImagePropertiesWindow propertiesWindow = new ImagePropertiesWindow(imageProperties);
+            ImagePropertiesWindow propertiesWindow = new ImagePropertiesWindow(this._imageStack.ToList());
             propertiesWindow.Show();
         }
 
@@ -102,8 +178,10 @@ namespace CollageApp
 
                 image.Width = ActualWidth * relativeWidth;
                 image.Height = ActualHeight * relativeHeight;
-                SetLeft(image, ActualWidth * relativeX);
-                SetTop(image, ActualHeight * relativeY);
+                image.X = ActualWidth * relativeX;
+                image.Y = ActualHeight * relativeY;
+                SetLeft(image, image.X);
+                SetTop(image, image.Y);
             }
 
             // check if image is selected and in editing mode
@@ -219,8 +297,11 @@ namespace CollageApp
                 double snappedLeft = Math.Floor(cursorPos.X / gridPixelSizeX) * gridPixelSizeX;
                 double snappedTop = Math.Floor(cursorPos.Y / gridPixelSizeY) * gridPixelSizeY;
 
-                SetLeft(_selectedImage, snappedLeft);
-                SetTop(_selectedImage, snappedTop);
+                _selectedImage.X = snappedLeft;
+                _selectedImage.Y = snappedTop;
+
+                SetLeft(_selectedImage, _selectedImage.X);
+                SetTop(_selectedImage, _selectedImage.Y);
 
                 _editingFrame.MoveTo(new Vector(snappedLeft, snappedTop));
             }
@@ -314,7 +395,8 @@ namespace CollageApp
                 if (resizeLeft)
                 {
                     newWidth = Math.Round((left + _selectedImage.Width - newPos.X) / gridPixelSizeX) * gridPixelSizeX;
-                    SetLeft(_selectedImage, snappedX);
+                    _selectedImage.X = snappedX;
+                    SetLeft(_selectedImage, _selectedImage.X);
                 }
                 else if (resizeRight)
                 {
@@ -324,7 +406,8 @@ namespace CollageApp
                 if (resizeTop)
                 {
                     newHeight = Math.Round((top + _selectedImage.Height - newPos.Y) / gridPixelSizeY) * gridPixelSizeY;
-                    SetTop(_selectedImage, snappedY);
+                    _selectedImage.Y = snappedY;
+                    SetTop(_selectedImage, _selectedImage.Y);
                 }
                 else if (resizeBottom)
                 {

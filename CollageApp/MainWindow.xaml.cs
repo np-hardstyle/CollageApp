@@ -35,8 +35,13 @@ namespace CollageApp
 
             // setup file open button
             FileOpenButton.IsEnabled = true;
-            FileOpenButton.Click += MenuItem_Click;
+            FileOpenButton.Click += ImageFileOpen_Click;
             FileOpenButton.FontWeight = FontWeights.Medium;
+
+            // setup config file open
+            ConfigOpenButton.IsEnabled = true;
+            ConfigOpenButton.Click += ConfigFileOpen_Click;
+            ConfigOpenButton.FontWeight = FontWeights.Medium;
 
             // properties
             Properties.Click += Properties_Click;
@@ -81,7 +86,7 @@ namespace CollageApp
             CollageCanvas.ToggleGrid();
         }
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        private void ImageFileOpen_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog _dialog = new OpenFileDialog
             {
@@ -97,6 +102,22 @@ namespace CollageApp
                 //temp.Rect = new Rect(0, 0, 100, 100);
                 //CollageCanvas.Children.Add(temp);
             }
+        }
+
+        private void ConfigFileOpen_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog _dialog = new OpenFileDialog
+            {
+                Title = "Select a config file ",
+                Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*",
+                CheckFileExists = true,
+            };
+
+            if (_dialog.ShowDialog() == true)
+            {
+                CollageCanvas.ApplyConfig(_dialog.FileName);
+            }
+
         }
     }
 }
