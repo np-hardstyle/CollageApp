@@ -9,13 +9,14 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 //TOOO : https://learn.microsoft.com/en-us/dotnet/desktop/wpf/graphics-multimedia/painting-with-images-drawings-and-visuals?view=netframeworkdesktop-4.8
 
 
 namespace CollageApp
 {
-    internal class PadImage : Image
+    public class PadImage : Image
     {
         //private
         static private double _default_pixel = 100;
@@ -60,6 +61,17 @@ namespace CollageApp
                 Width = 0,
                 Height = 0,
             };
+        }
+
+        public XElement ToXElement()
+        {
+            return new XElement("PadImage",
+                new XAttribute("filepath", filepath),
+                new XAttribute("height", Height),
+                new XAttribute("width", Width),
+                new XAttribute("x", X),
+                new XAttribute("y", Y)
+            );
         }
 
         public void relocate_image(double inX, double inY)
